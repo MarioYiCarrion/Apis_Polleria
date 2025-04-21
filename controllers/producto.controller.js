@@ -1,37 +1,47 @@
 const db = require('../db');
 
-exports.getAll = (req, res) => {
-  db.query('SELECT * FROM producto', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+exports.getAll = async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM producto');
     res.json(results);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.getById = (req, res) => {
-  db.query('SELECT * FROM producto WHERE id = ?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+exports.getById = async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM producto WHERE id = ?', [req.params.id]);
     if (results.length === 0) return res.status(404).json({ message: 'No encontrado' });
     res.json(results[0]);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.create = (req, res) => {
-  db.query('INSERT INTO producto SET ?', req.body, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+exports.create = async (req, res) => {
+  try {
+    const [result] = await db.query('INSERT INTO producto SET ?', [req.body]);
     res.status(201).json({ id: result.insertId, ...req.body });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.update = (req, res) => {
-  db.query('UPDATE producto SET ? WHERE id = ?', [req.body, req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+exports.update = async (req, res) => {
+  try {
+    await db.query('UPDATE producto SET ? WHERE id = ?', [req.body, req.params.id]);
     res.json({ message: 'Actualizado correctamente' });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.remove = (req, res) => {
-  db.query('DELETE FROM producto WHERE id = ?', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+exports.remove = async (req, res) => {
+  try {
+    await db.query('DELETE FROM producto WHERE id = ?', [req.params.id]);
     res.json({ message: 'Eliminado correctamente' });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
