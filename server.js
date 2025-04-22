@@ -14,7 +14,7 @@ app.use('/api/salidas', require('./routes/salida.routes'));
 app.use('/api/stock', require('./routes/stock.routes'));
 app.use(express.json());
 app.use('/api', authRoutes);
-app.use('/', productosRoutes);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
