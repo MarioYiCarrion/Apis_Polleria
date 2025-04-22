@@ -45,3 +45,20 @@ exports.remove = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getByTipo = async (req, res) => {
+  try {
+    const tipo = req.params.tipo;  // Tipo de producto que pasas como parámetro
+    const [results] = await db.query(`
+      SELECT p.id, p.nombre, tp.nombre AS tipo_producto, p.unidad_medida_id
+      FROM producto p
+      JOIN tipoproducto tp ON p.tipo_producto_id = tp.id
+      WHERE tp.nombre = ?
+    `, [tipo]);
+
+    if (results.length === 0) return res.status(404).json({ message: 'No se encontraron productos de este tipo' });
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
