@@ -2,7 +2,20 @@ const db = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const [results] = await db.query('SELECT * FROM stock');
+    const [results] = await db.query(`
+      SELECT 
+        s.id,
+        s.producto_id,
+        p.nombre AS producto_nombre,
+        s.marca_id,
+        m.nombre AS marca_nombre,
+        s.cantidad,
+        u.nombre AS unidad_nombre
+      FROM stock s
+      JOIN productos p ON s.producto_id = p.id
+      JOIN marcas m ON s.marca_id = m.id
+      JOIN unidades u ON p.unidad_id = u.id
+    `);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
