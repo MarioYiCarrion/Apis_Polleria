@@ -12,9 +12,9 @@ exports.getAll = async (req, res) => {
         s.cantidad,
         u.nombre AS unidad_nombre
       FROM stock s
-      JOIN productos p ON s.producto_id = p.id
-      JOIN marcas m ON s.marca_id = m.id
-      JOIN unidades u ON p.unidad_id = u.id
+      JOIN producto p ON s.producto_id = p.id
+      JOIN marca m ON s.marca_id = m.id
+      JOIN unidadmedida u ON p.unidad_id = u.id
     `);
     res.json(results);
   } catch (err) {
