@@ -3,8 +3,7 @@ const db = require('../db');
 exports.getAll = async (req, res) => {
   try {
     const [results] = await db.query(`
-      SELECT 
-        s.id,
+      SELECT         
         s.producto_id,
         p.nombre AS producto_nombre,
         s.marca_id,
