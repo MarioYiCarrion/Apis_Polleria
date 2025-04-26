@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {
-    obtenerHistorial,
-    descargarHistorialExcel
-} = require('../controllers/historial.controller');
+const historialController = require('../controllers/historial.controller');
 
-router.get('/', obtenerHistorial);
-router.get('/excel', descargarHistorialExcel);
+// GET con parámetros por query
+router.get('/', historialController.obtenerHistorial);
+router.get('/excel', historialController.descargarHistorialExcel);
 
 module.exports = router;
