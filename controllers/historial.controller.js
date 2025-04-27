@@ -81,12 +81,10 @@ const descargarHistorialExcel = async (req, res) => {
             { header: 'Cantidad', key: 'cantidad', width: 15 },
             { header: 'Fecha', key: 'fecha', width: 20 },
             { header: 'Usuario', key: 'usuario_nombre', width: 25 },
-        ];
+        ];        
 
-        
-
-        worksheet.getRow(9).font = { bold: true };
-        worksheet.getRow(9).alignment = { horizontal: 'center' };
+        worksheet.getRow(8).font = { bold: true };
+        worksheet.getRow(8).alignment = { horizontal: 'center' };
 
         // Aquí calculamos la fila del encabezado de forma dinámica
         const headerRowIndex = worksheet.lastRow.number + 1;
