@@ -1,5 +1,6 @@
 const db = require('../db');
 const ExcelJS = require('exceljs');
+const path = require('path');
 
 // Obtener movimientos por rango de fechas
 const obtenerHistorial = async (req, res) => {
@@ -38,6 +39,33 @@ const descargarHistorialExcel = async (req, res) => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Historial Movimientos');
 
+        // Agregar el logo
+        const logoPath = path.join(__dirname, '..', 'assets', 'IconoAlmacen.png');
+        const imageId = workbook.addImage({
+            filename: logoPath,
+            extension: 'png',
+        });
+
+        worksheet.addImage(imageId, {
+            tl: { col: 0, row: 0 },
+            ext: { width: 150, height: 100 }
+        });
+
+        // Espacio para que el logo no tape el título
+        worksheet.mergeCells('A6:G6');
+        const titleCell = worksheet.getCell('A6');
+        titleCell.value = 'Historial de Movimientos';
+        titleCell.font = { size: 18, bold: true };
+        titleCell.alignment = { horizontal: 'center' };
+
+        // Mostrar rango de fechas
+        worksheet.mergeCells('A7:G7');
+        const rangoCell = worksheet.getCell('A7');
+        rangoCell.value = `Rango: Desde ${fecha_inicio} hasta ${fecha_fin}`;
+        rangoCell.font = { italic: true, size: 12 };
+        rangoCell.alignment = { horizontal: 'center' };
+
+        // Encabezados de tabla
         worksheet.columns = [
             { header: 'ID', key: 'movimiento_id', width: 10 },
             { header: 'Tipo', key: 'tipo_movimiento', width: 15 },
@@ -48,7 +76,24 @@ const descargarHistorialExcel = async (req, res) => {
             { header: 'Usuario', key: 'usuario_nombre', width: 25 },
         ];
 
+        // Agregar los datos
         rows.forEach(row => worksheet.addRow(row));
+
+        // Agregar filtros en el encabezado
+        worksheet.autoFilter = {
+            from: {
+                row: 8,
+                column: 1
+            },
+            to: {
+                row: 8,
+                column: worksheet.columns.length
+            }
+        };
+
+        // Estilo de encabezados
+        worksheet.getRow(8).font = { bold: true };
+        worksheet.getRow(8).alignment = { horizontal: 'center' };
 
         res.setHeader(
             'Content-Type',
