@@ -72,20 +72,40 @@ const descargarHistorialExcel = async (req, res) => {
         // Espacio antes de la tabla
         worksheet.addRow([]);
 
-        // Insertar las cabeceras en la fila 9
-        const headers = ['ID', 'Tipo', 'Producto', 'Marca', 'Cantidad', 'Fecha', 'Usuario'];
-        worksheet.addRow(headers);
+        // Configurar columnas
+        worksheet.columns = [
+            { header: 'ID', key: 'movimiento_id', width: 10 },
+            { header: 'Tipo', key: 'tipo_movimiento', width: 15 },
+            { header: 'Producto', key: 'producto_nombre', width: 30 },
+            { header: 'Marca', key: 'marca_nombre', width: 20 },
+            { header: 'Cantidad', key: 'cantidad', width: 15 },
+            { header: 'Fecha', key: 'fecha', width: 20 },
+            { header: 'Usuario', key: 'usuario_nombre', width: 25 },
+        ];        
 
-        // Estilos para las cabeceras (Fila 9)
-        const headerRow = worksheet.getRow(9);
-        headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
-        headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(8).font = { bold: true };
+        worksheet.getRow(8).alignment = { horizontal: 'center' };
+
+        // Aquí calculamos la fila del encabezado de forma dinámica
+        const headerRowIndex = worksheet.lastRow.number + 1;
+        const headerRow = worksheet.addRow(worksheet.columns.map(col => col.header));
+
+        // Aplicar filtros
+        worksheet.autoFilter = {
+            from: { row: headerRowIndex, column: 1 },
+            to: { row: headerRowIndex, column: worksheet.columns.length }
+        };
+
+        // Estilos para encabezados
+        headerRow.height = 25;
         headerRow.eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFF' } };
             cell.fill = {
                 type: 'pattern',
                 pattern: 'solid',
                 fgColor: { argb: '305496' }
             };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
             cell.border = {
                 top: { style: 'thin' },
                 left: { style: 'thin' },
@@ -94,18 +114,12 @@ const descargarHistorialExcel = async (req, res) => {
             };
         });
 
-        // Aplicar autofiltro en la fila de cabecera
-        worksheet.autoFilter = {
-            from: { row: 9, column: 1 },
-            to: { row: 9, column: worksheet.columns.length }
-        };
-
         // Agregar los datos
         rows.forEach(row => worksheet.addRow(row));
 
         // Formato de filas de datos
         worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber > 9) { // Solo aplicar estilo a los datos, no a la fila de cabeceras
+            if (rowNumber > headerRowIndex) { // Solo aplicar estilo a los datos, no encabezado
                 const isEven = (rowNumber % 2 === 0);
                 row.eachCell((cell) => {
                     cell.fill = {
@@ -125,7 +139,7 @@ const descargarHistorialExcel = async (req, res) => {
         });
 
         // Formato especial para columna "cantidad"
-        worksheet.getColumn(5).numFmt = '#,##0.00';
+        worksheet.getColumn('cantidad').numFmt = '#,##0.00';
 
         // Ajustar altura de filas
         worksheet.eachRow({ includeEmpty: true }, function (row) {
