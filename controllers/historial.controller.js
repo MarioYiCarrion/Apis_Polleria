@@ -2,7 +2,6 @@ const db = require('../db');
 const ExcelJS = require('exceljs');
 const path = require('path');
 
-// Obtener movimientos por rango de fechas
 const obtenerHistorial = async (req, res) => {
     const { fecha_inicio, fecha_fin } = req.query;
 
@@ -22,7 +21,6 @@ const obtenerHistorial = async (req, res) => {
     }
 };
 
-// Descargar Excel del historial
 const descargarHistorialExcel = async (req, res) => {
     const { fecha_inicio, fecha_fin } = req.query;
 
@@ -39,37 +37,46 @@ const descargarHistorialExcel = async (req, res) => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Historial Movimientos');
 
-        // Agregar el logo
+        // Insertar el logo
         const logoPath = path.join(__dirname, '..', 'assets', 'IconoAlmacen.png');
         const imageId = workbook.addImage({
             filename: logoPath,
             extension: 'png',
         });
-
         worksheet.addImage(imageId, {
             tl: { col: 0, row: 0 },
-            ext: { width: 150, height: 100 }
+            ext: { width: 120, height: 80 }
         });
 
-        // Espacio para que el logo no tape el título
+        // Espacio visual
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+
+        // Título
         worksheet.mergeCells('A6:G6');
         const titleCell = worksheet.getCell('A6');
         titleCell.value = 'Historial de Movimientos';
-        titleCell.font = { size: 18, bold: true };
+        titleCell.font = { size: 20, bold: true, color: { argb: '002060' } }; // Azul oscuro
         titleCell.alignment = { horizontal: 'center' };
 
-        // Mostrar rango de fechas
+        // Rango de fechas
         worksheet.mergeCells('A7:G7');
         const rangoCell = worksheet.getCell('A7');
         rangoCell.value = `Rango: Desde ${fecha_inicio} hasta ${fecha_fin}`;
-        rangoCell.font = { italic: true, size: 12 };
+        rangoCell.font = { italic: true, size: 12, color: { argb: '666666' } }; // Gris
         rangoCell.alignment = { horizontal: 'center' };
 
-        // Encabezados de tabla
+        // Espacio antes de la tabla
+        worksheet.addRow([]);
+
+        // Configurar columnas
         worksheet.columns = [
             { header: 'ID', key: 'movimiento_id', width: 10 },
             { header: 'Tipo', key: 'tipo_movimiento', width: 15 },
-            { header: 'Producto', key: 'producto_nombre', width: 25 },
+            { header: 'Producto', key: 'producto_nombre', width: 30 },
             { header: 'Marca', key: 'marca_nombre', width: 20 },
             { header: 'Cantidad', key: 'cantidad', width: 15 },
             { header: 'Fecha', key: 'fecha', width: 20 },
@@ -79,27 +86,65 @@ const descargarHistorialExcel = async (req, res) => {
         // Agregar los datos
         rows.forEach(row => worksheet.addRow(row));
 
-        // Agregar filtros en el encabezado
+        // Filtros
         worksheet.autoFilter = {
-            from: {
-                row: 8,
-                column: 1
-            },
-            to: {
-                row: 8,
-                column: worksheet.columns.length
-            }
+            from: { row: 9, column: 1 },
+            to: { row: 9, column: worksheet.columns.length }
         };
 
-        // Estilo de encabezados
-        worksheet.getRow(8).font = { bold: true };
-        worksheet.getRow(8).alignment = { horizontal: 'center' };
+        // Estilo encabezados
+        const headerRow = worksheet.getRow(9);
+        headerRow.height = 25;
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFF' } }; // Blanco
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '305496' } // Azul oscuro profesional
+            };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
+
+        // Formato de filas de datos
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 9) {
+                const isEven = (rowNumber % 2 === 0);
+                row.eachCell((cell) => {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: isEven ? 'F2F2F2' : 'FFFFFF' } // Alternar blanco/gris claro
+                    };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' },
+                    };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                });
+            }
+        });
+
+        // Formato para columna cantidad
+        worksheet.getColumn('cantidad').numFmt = '#,##0.00';
+
+        // Ajustar altura de filas
+        worksheet.eachRow({ includeEmpty: true }, function (row) {
+            row.height = 20;
+        });
 
         res.setHeader(
             'Content-Type',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         );
-        res.setHeader('Content-Disposition', 'attachment; filename=historial.xlsx');
+        res.setHeader('Content-Disposition', 'attachment; filename=historial_movimientos.xlsx');
 
         await workbook.xlsx.write(res);
         res.end();
