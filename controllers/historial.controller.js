@@ -125,7 +125,7 @@ const descargarHistorialExcel = async (req, res) => {
         });
 
         // Formato especial para columna "cantidad"
-        worksheet.getColumn('cantidad').numFmt = '#,##0.00';
+        worksheet.getColumn(5).numFmt = '#,##0.00';
 
         // Ajustar altura de filas
         worksheet.eachRow({ includeEmpty: true }, function (row) {
