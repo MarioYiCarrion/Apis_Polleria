@@ -157,3 +157,9 @@ const descargarHistorialExcel = async (req, res) => {
         res.status(500).json({ error: 'Error del servidor' });
     }
 };
+
+
+module.exports = {
+    obtenerHistorial,
+    descargarHistorialExcel
+}
