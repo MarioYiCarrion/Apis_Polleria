@@ -59,14 +59,14 @@ const descargarHistorialExcel = async (req, res) => {
         worksheet.mergeCells('A6:G6');
         const titleCell = worksheet.getCell('A6');
         titleCell.value = 'Historial de Movimientos';
-        titleCell.font = { size: 20, bold: true, color: { argb: '002060' } }; // Azul oscuro
+        titleCell.font = { size: 20, bold: true, color: { argb: '002060' } };
         titleCell.alignment = { horizontal: 'center' };
 
         // Rango de fechas
         worksheet.mergeCells('A7:G7');
         const rangoCell = worksheet.getCell('A7');
         rangoCell.value = `Rango: Desde ${fecha_inicio} hasta ${fecha_fin}`;
-        rangoCell.font = { italic: true, size: 12, color: { argb: '666666' } }; // Gris
+        rangoCell.font = { italic: true, size: 12, color: { argb: '666666' } };
         rangoCell.alignment = { horizontal: 'center' };
 
         // Espacio antes de la tabla
@@ -83,24 +83,24 @@ const descargarHistorialExcel = async (req, res) => {
             { header: 'Usuario', key: 'usuario_nombre', width: 25 },
         ];
 
-        // Agregar los datos
-        rows.forEach(row => worksheet.addRow(row));
+        // Aquí calculamos la fila del encabezado de forma dinámica
+        const headerRowIndex = worksheet.lastRow.number + 1;
+        const headerRow = worksheet.addRow(worksheet.columns.map(col => col.header));
 
-        // Filtros
+        // Aplicar filtros
         worksheet.autoFilter = {
-            from: { row: 9, column: 1 },
-            to: { row: 9, column: worksheet.columns.length }
+            from: { row: headerRowIndex, column: 1 },
+            to: { row: headerRowIndex, column: worksheet.columns.length }
         };
 
-        // Estilo encabezados
-        const headerRow = worksheet.getRow(9);
+        // Estilos para encabezados
         headerRow.height = 25;
         headerRow.eachCell((cell) => {
-            cell.font = { bold: true, color: { argb: 'FFFFFF' } }; // Blanco
+            cell.font = { bold: true, color: { argb: 'FFFFFF' } };
             cell.fill = {
                 type: 'pattern',
                 pattern: 'solid',
-                fgColor: { argb: '305496' } // Azul oscuro profesional
+                fgColor: { argb: '305496' }
             };
             cell.alignment = { horizontal: 'center', vertical: 'middle' };
             cell.border = {
@@ -111,15 +111,18 @@ const descargarHistorialExcel = async (req, res) => {
             };
         });
 
+        // Agregar los datos
+        rows.forEach(row => worksheet.addRow(row));
+
         // Formato de filas de datos
         worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber > 9) {
+            if (rowNumber > headerRowIndex) { // Solo aplicar estilo a los datos, no encabezado
                 const isEven = (rowNumber % 2 === 0);
                 row.eachCell((cell) => {
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: isEven ? 'F2F2F2' : 'FFFFFF' } // Alternar blanco/gris claro
+                        fgColor: { argb: isEven ? 'F2F2F2' : 'FFFFFF' }
                     };
                     cell.border = {
                         top: { style: 'thin' },
@@ -132,7 +135,7 @@ const descargarHistorialExcel = async (req, res) => {
             }
         });
 
-        // Formato para columna cantidad
+        // Formato especial para columna "cantidad"
         worksheet.getColumn('cantidad').numFmt = '#,##0.00';
 
         // Ajustar altura de filas
@@ -140,6 +143,7 @@ const descargarHistorialExcel = async (req, res) => {
             row.height = 20;
         });
 
+        // Preparar respuesta
         res.setHeader(
             'Content-Type',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -152,9 +156,4 @@ const descargarHistorialExcel = async (req, res) => {
         console.error('Error al generar Excel:', error);
         res.status(500).json({ error: 'Error del servidor' });
     }
-};
-
-module.exports = {
-    obtenerHistorial,
-    descargarHistorialExcel
 };
