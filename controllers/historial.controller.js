@@ -83,6 +83,24 @@ const descargarHistorialExcel = async (req, res) => {
             { header: 'Usuario', key: 'usuario_nombre', width: 25 },
         ];
 
+        for (let i = 0; i < 8; i++) {
+            worksheet.addRow([]);
+        }
+
+        worksheet.getRow(9).values = [
+            '', // ExcelJS empieza en columna 1, así que el índice 0 se ignora
+            'ID',
+            'Tipo',
+            'Producto',
+            'Marca',
+            'Cantidad',
+            'Fecha',
+            'Usuario',
+        ];
+
+        worksheet.getRow(9).font = { bold: true };
+        worksheet.getRow(9).alignment = { horizontal: 'center' };
+
         // Aquí calculamos la fila del encabezado de forma dinámica
         const headerRowIndex = worksheet.lastRow.number + 1;
         const headerRow = worksheet.addRow(worksheet.columns.map(col => col.header));
