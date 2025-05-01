@@ -15,6 +15,9 @@ app.use('/api/stock', require('./routes/stock.routes'));
 app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api/historial', require('./routes/historial.routes'));
+app.use('/api/stockbajo', require('./routes/stockbajo.routes'));
+
+
 
 
 const PORT = process.env.PORT || 3000;
