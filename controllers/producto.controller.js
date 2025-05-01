@@ -66,3 +66,21 @@ exports.getByTipo = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getStockBajo = async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT 
+        p.id, 
+        p.nombre, 
+        s.cantidad AS stock_actual, 
+        p.stockbajo
+      FROM producto p
+      JOIN stock s ON p.id = s.producto_id
+      WHERE s.cantidad < p.stockbajo
+    `);
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
