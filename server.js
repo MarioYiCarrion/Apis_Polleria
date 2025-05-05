@@ -1,6 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+}));
+
 require('dotenv').config();
 app.use(express.json());
 const authRoutes = require('./routes/auth.routes');
@@ -17,9 +24,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api/historial', require('./routes/historial.routes'));
 app.use('/api/stockbajo', require('./routes/stockbajo.routes'));
-app.use(cors({
-  origin: 'http://localhost:3000',
-}));
+
 
 
 
