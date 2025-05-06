@@ -2,20 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
-const whitelist = [
-  'http://localhost:3000',
-  'http://192.168.18.15:3000',
-  'https://webalmacenpolleria-production.up.railway.app/' // ← Reemplaza esto por tu IP local real
-];
+
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('No autorizado por CORS'));
-    }
-  },
+  origin: 'https://webalmacenpolleria-production.up.railway.app', // Dirección de tu frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type'],
 }));
