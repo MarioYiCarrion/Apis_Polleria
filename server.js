@@ -4,7 +4,8 @@ const app = express();
 
 const whitelist = [
   'http://localhost:3000',
-  'http://192.168.18.15:3000', // ← Reemplaza esto por tu IP local real
+  'http://192.168.18.15:3000',
+  'https://webalmacenpolleria-production.up.railway.app/' // ← Reemplaza esto por tu IP local real
 ];
 
 app.use(cors({
