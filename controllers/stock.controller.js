@@ -35,7 +35,7 @@ exports.exportStockToExcel = async (req, res) => {
       FROM stock s
       JOIN producto p ON s.producto_id = p.id
       JOIN marca m ON s.marca_id = m.id
-      JOIN unidad u ON p.unidad_id = u.id
+      JOIN unidadmedida u ON p.unidad_medida_id = u.id
     `);
 
     const workbook = new ExcelJS.Workbook();
