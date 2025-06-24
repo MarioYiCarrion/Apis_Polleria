@@ -42,10 +42,8 @@ exports.exportStockToExcel = async (req, res) => {
     const worksheet = workbook.addWorksheet('Stock Actual');
 
     // Encabezado con estilo
-    worksheet.columns = [
-      { header: 'ID Producto', key: 'producto_id', width: 15 },
-      { header: 'Producto', key: 'producto_nombre', width: 30 },
-      { header: 'ID Marca', key: 'marca_id', width: 15 },
+    worksheet.columns = [      
+      { header: 'Producto', key: 'producto_nombre', width: 30 },      
       { header: 'Marca', key: 'marca_nombre', width: 20 },
       { header: 'Cantidad', key: 'cantidad', width: 15 },
       { header: 'Unidad', key: 'unidad_nombre', width: 15 }
