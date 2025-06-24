@@ -1,3 +1,4 @@
+const ExcelJS = require('exceljs');
 const db = require('../db');
 
 exports.getAll = async (req, res) => {
@@ -57,5 +58,66 @@ exports.remove = async (req, res) => {
     res.json({ message: 'Eliminado correctamente' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportStockToExcel = async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT         
+        s.producto_id,
+        p.nombre AS producto_nombre,
+        s.marca_id,
+        m.nombre AS marca_nombre,
+        s.cantidad,
+        u.nombre AS unidad_nombre
+      FROM stock s
+      JOIN producto p ON s.producto_id = p.id
+      JOIN marca m ON s.marca_id = m.id
+      JOIN unidad u ON p.unidad_id = u.id
+    `);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Stock Actual');
+
+    // Encabezado con estilo
+    worksheet.columns = [
+      { header: 'ID Producto', key: 'producto_id', width: 15 },
+      { header: 'Producto', key: 'producto_nombre', width: 30 },
+      { header: 'ID Marca', key: 'marca_id', width: 15 },
+      { header: 'Marca', key: 'marca_nombre', width: 20 },
+      { header: 'Cantidad', key: 'cantidad', width: 15 },
+      { header: 'Unidad', key: 'unidad_nombre', width: 15 }
+    ];
+
+    // Estilo para encabezados
+    worksheet.getRow(1).eachCell(cell => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFCCE5FF' }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // Insertar datos
+    results.forEach(row => worksheet.addRow(row));
+
+    // Establecer tipo de respuesta
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=stock_actual.xlsx');
+
+    // Enviar archivo Excel al cliente
+    await workbook.xlsx.write(res);
+    res.status(200).end();
+  } catch (error) {
+    console.error('Error al generar el Excel:', error);
+    res.status(500).json({ message: 'Error al generar el archivo Excel' });
   }
 };
