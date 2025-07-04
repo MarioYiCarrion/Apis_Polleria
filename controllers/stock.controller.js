@@ -128,6 +128,8 @@ exports.exportStockToExcel = async (req, res) => {
     worksheet.getColumn(3).width = 15;
     worksheet.getColumn(4).width = 20;
 
+    worksheet.getColumn(3).numFmt = '0';
+
     // Enviar Excel
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=stock_actual.xlsx');
