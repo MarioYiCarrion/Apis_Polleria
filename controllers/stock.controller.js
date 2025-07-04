@@ -43,47 +43,51 @@ exports.exportStockToExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Stock Actual');
 
-    // Leer imagen (logo.png)
-    const logoPath = path.join(__dirname, '../assets/IconoAlmacen.png');
+    // Cargar logo
+    const logoPath = path.join(__dirname, '../assets/logo.png');
+    if (!fs.existsSync(logoPath)) {
+      console.error('Logo no encontrado:', logoPath);
+      return res.status(500).json({ message: 'Logo no encontrado' });
+    }
+
     const imageId = workbook.addImage({
       filename: logoPath,
-      extension: 'png',
+      extension: 'png'
     });
 
-    // Insertar logo (A1:B4)
-    worksheet.addImage(imageId, {
-      tl: { col: 0, row: 0 },
-      ext: { width: 120, height: 60 },
-    });
-
-    // Agregar título centrado en la fila 2, columna C (C2)
-    worksheet.mergeCells('C2:F2');
-    const titleCell = worksheet.getCell('C2');
+    // Agregar título centrado en A1:D1
+    worksheet.mergeCells('A1:D1');
+    const titleCell = worksheet.getCell('A1');
     titleCell.value = 'Reporte de Stock Actual';
     titleCell.font = { size: 16, bold: true };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Dejar 3 filas vacías para espacio visual
-    worksheet.addRow([]);
-    worksheet.addRow([]);
+    // Insertar logo en E1:F3 (sin molestar tabla)
+    worksheet.addImage(imageId, {
+      tl: { col: 4.5, row: 0.2 }, // Entre E y F
+      ext: { width: 120, height: 50 }
+    });
+
+    // Fila vacía por estética
     worksheet.addRow([]);
 
-    // Encabezados
-    worksheet.columns = [      
-      { header: 'Producto', key: 'producto_nombre', width: 30 },      
+    // Definir columnas desde la fila 3
+    worksheet.columns = [
+      { header: 'Producto', key: 'producto_nombre', width: 30 },
       { header: 'Marca', key: 'marca_nombre', width: 20 },
       { header: 'Cantidad', key: 'cantidad', width: 15 },
       { header: 'Unidad de Medida', key: 'unidad_nombre', width: 20 }
     ];
 
-    // Filtros automáticos
+    // Aplicar filtros automáticos
     worksheet.autoFilter = {
-      from: 'A6',
-      to: 'D6'
+      from: 'A3',
+      to: 'D3'
     };
 
     // Estilo para encabezados
-    const headerRow = worksheet.getRow(6);
+    const headerRow = worksheet.getRow(3);
+    headerRow.height = 25;
     headerRow.eachCell(cell => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -100,7 +104,7 @@ exports.exportStockToExcel = async (req, res) => {
       };
     });
 
-    // Insertar datos debajo del encabezado
+    // Insertar filas de datos
     results.forEach(row => {
       const newRow = worksheet.addRow({
         producto_nombre: row.producto_nombre,
@@ -120,17 +124,15 @@ exports.exportStockToExcel = async (req, res) => {
       });
     });
 
-    worksheet.getRow(6).height = 25;
-
-    // Enviar Excel
+    // Descargar el archivo Excel
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=stock_actual_con_logo.xlsx');
 
     await workbook.xlsx.write(res);
     res.status(200).end();
   } catch (error) {
-    console.error('Error al generar el Excel:', error);
-    res.status(500).json({ message: 'Error al generar el archivo Excel' });
+    console.error('Error al generar el Excel:', error.message);
+    res.status(500).json({ message: 'Error al generar el archivo Excel', error: error.message });
   }
 };
 
