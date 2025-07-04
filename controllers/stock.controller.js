@@ -44,7 +44,7 @@ exports.exportStockToExcel = async (req, res) => {
     const worksheet = workbook.addWorksheet('Stock Actual');
 
     // Agregar logo (E1:F3)
-    const logoPath = path.join(__dirname, '../assets/logo.png');
+    const logoPath = path.join(__dirname, '../assets/IconoAlmacen.png');
     if (!fs.existsSync(logoPath)) {
       console.error('Logo no encontrado:', logoPath);
       return res.status(500).json({ message: 'Logo no encontrado' });
