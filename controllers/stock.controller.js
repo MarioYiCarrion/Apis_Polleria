@@ -24,6 +24,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
+
 exports.exportStockToExcel = async (req, res) => {
   try {
     const [results] = await db.query(`
@@ -43,7 +44,7 @@ exports.exportStockToExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Stock Actual');
 
-    // Logo
+    // === 1. Insertar logo (E1:F3)
     const logoPath = path.join(__dirname, '../assets/IconoAlmacen.png');
     if (!fs.existsSync(logoPath)) {
       console.error('Logo no encontrado:', logoPath);
@@ -60,22 +61,20 @@ exports.exportStockToExcel = async (req, res) => {
       ext: { width: 120, height: 50 }
     });
 
-    // Título en A1:D1
+    // === 2. Insertar título en A1:D1
     worksheet.mergeCells('A1:D1');
-    const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'Reporte de Stock Actual';
-    titleCell.font = { size: 16, bold: true };
-    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getCell('A1').value = 'Reporte de Stock Actual';
+    worksheet.getCell('A1').font = { size: 16, bold: true };
+    worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Subtítulo en A2:D2
+    // === 3. Subtítulo en A2:D2
     const fecha = new Date().toLocaleDateString('es-PE');
     worksheet.mergeCells('A2:D2');
-    const subtitleCell = worksheet.getCell('A2');
-    subtitleCell.value = `Generado el ${fecha} - Almacén Pollería`;
-    subtitleCell.font = { italic: true, size: 12, color: { argb: 'FF555555' } };
-    subtitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getCell('A2').value = `Generado el ${fecha} - Almacén Pollería`;
+    worksheet.getCell('A2').font = { italic: true, size: 12, color: { argb: 'FF555555' } };
+    worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Columnas (encabezados en fila 3 automáticamente)
+    // === 4. Columnas y encabezados en A3:D3
     worksheet.columns = [
       { header: 'Producto', key: 'producto_nombre', width: 30 },
       { header: 'Marca', key: 'marca_nombre', width: 20 },
@@ -83,7 +82,7 @@ exports.exportStockToExcel = async (req, res) => {
       { header: 'Unidad de Medida', key: 'unidad_nombre', width: 20 }
     ];
 
-    // Estilo encabezados fila 3
+    // === 5. Estilos para encabezados (fila 3)
     const headerRow = worksheet.getRow(3);
     headerRow.height = 25;
     headerRow.eachCell(cell => {
@@ -102,13 +101,13 @@ exports.exportStockToExcel = async (req, res) => {
       };
     });
 
-    // Agregar filtros
+    // === 6. Filtros activados
     worksheet.autoFilter = {
       from: 'A3',
       to: 'D3'
     };
 
-    // Insertar filas desde la fila 4
+    // === 7. Insertar datos desde la fila 4
     results.forEach(row => {
       const newRow = worksheet.addRow({
         producto_nombre: row.producto_nombre,
@@ -128,17 +127,19 @@ exports.exportStockToExcel = async (req, res) => {
       });
     });
 
-    // Descargar el archivo
+    // === 8. Preparar descarga
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=stock_actual_con_logo.xlsx');
 
     await workbook.xlsx.write(res);
     res.status(200).end();
+
   } catch (error) {
     console.error('Error al generar el Excel:', error.message);
     res.status(500).json({ message: 'Error al generar el archivo Excel', error: error.message });
   }
 };
+
 
 
 
