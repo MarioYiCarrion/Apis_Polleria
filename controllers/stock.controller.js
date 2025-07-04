@@ -42,7 +42,7 @@ exports.exportStockToExcel = async (req, res) => {
     const worksheet = workbook.addWorksheet('Stock Actual');
 
     // Leer imagen (logo.png)
-    const logoPath = path.join(__dirname, '../assets/logo.png'); // ajusta la ruta si es necesario
+    const logoPath = path.join(__dirname, '../assets/IconoAlmacen.png'); // ajusta la ruta si es necesario
     const imageId = workbook.addImage({
       filename: logoPath,
       extension: 'png',
