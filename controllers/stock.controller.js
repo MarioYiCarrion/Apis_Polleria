@@ -43,7 +43,7 @@ exports.exportStockToExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Stock Actual');
 
-    // Agregar logo (E1:F3)
+    // Logo
     const logoPath = path.join(__dirname, '../assets/IconoAlmacen.png');
     if (!fs.existsSync(logoPath)) {
       console.error('Logo no encontrado:', logoPath);
@@ -67,7 +67,7 @@ exports.exportStockToExcel = async (req, res) => {
     titleCell.font = { size: 16, bold: true };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Subtítulo (empresa + fecha)
+    // Subtítulo en A2:D2
     const fecha = new Date().toLocaleDateString('es-PE');
     worksheet.mergeCells('A2:D2');
     const subtitleCell = worksheet.getCell('A2');
@@ -75,16 +75,15 @@ exports.exportStockToExcel = async (req, res) => {
     subtitleCell.font = { italic: true, size: 12, color: { argb: 'FF555555' } };
     subtitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Encabezados personalizados en fila 3
-    worksheet.getRow(3).values = ['Producto', 'Marca', 'Cantidad', 'Unidad de Medida'];
+    // Columnas (encabezados en fila 3 automáticamente)
+    worksheet.columns = [
+      { header: 'Producto', key: 'producto_nombre', width: 30 },
+      { header: 'Marca', key: 'marca_nombre', width: 20 },
+      { header: 'Cantidad', key: 'cantidad', width: 15 },
+      { header: 'Unidad de Medida', key: 'unidad_nombre', width: 20 }
+    ];
 
-    // Filtros en A3:D3
-    worksheet.autoFilter = {
-      from: 'A3',
-      to: 'D3'
-    };
-
-    // Estilo para encabezados
+    // Estilo encabezados fila 3
     const headerRow = worksheet.getRow(3);
     headerRow.height = 25;
     headerRow.eachCell(cell => {
@@ -103,7 +102,13 @@ exports.exportStockToExcel = async (req, res) => {
       };
     });
 
-    // Insertar filas de datos desde fila 4
+    // Agregar filtros
+    worksheet.autoFilter = {
+      from: 'A3',
+      to: 'D3'
+    };
+
+    // Insertar filas desde la fila 4
     results.forEach(row => {
       const newRow = worksheet.addRow({
         producto_nombre: row.producto_nombre,
@@ -123,13 +128,7 @@ exports.exportStockToExcel = async (req, res) => {
       });
     });
 
-    // Definir anchos de columna
-    worksheet.getColumn(1).width = 30; // Producto
-    worksheet.getColumn(2).width = 20; // Marca
-    worksheet.getColumn(3).width = 15; // Cantidad
-    worksheet.getColumn(4).width = 20; // Unidad
-
-    // Descargar Excel
+    // Descargar el archivo
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=stock_actual_con_logo.xlsx');
 
